@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GST Annual Report Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --charcoal: #3A3630;
+    --charcoal-dark: #262320;
+    --teal: #00A3AD;
+    --teal-dark: #008891;
+    --bg: #F6F8FB;
+    --card: #FFFFFF;
+    --text: #1F2937;
+    --text-muted: #5B6472;
+    --border: #E2E8F0;
+    --success: #1E824C;
+    --error: #C0392B;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+  }
+  .nav {
+    background: var(--charcoal);
+    color: white;
+    padding: 18px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .nav .brand {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 20px;
+    letter-spacing: -0.3px;
+  }
+  .nav .tagline {
+    font-size: 13px;
+    color: var(--teal);
+    font-weight: 500;
+  }
+  .hero {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 56px 24px 24px;
+    text-align: center;
+  }
+  .hero h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 40px;
+    font-weight: 700;
+    line-height: 1.15;
+    color: var(--charcoal-dark);
+    margin: 0 0 16px;
+    letter-spacing: -0.5px;
+  }
+  .hero h1 span { color: var(--teal-dark); }
+  .hero p.sub {
+    font-size: 17px;
+    color: var(--text-muted);
+    max-width: 560px;
+    margin: 0 auto 8px;
+  }
+  .container {
+    max-width: 640px;
+    margin: 32px auto 80px;
+    padding: 0 24px;
+  }
+  .flash {
+    background: #FDECEA;
+    border: 1px solid var(--error);
+    color: var(--error);
+    padding: 14px 18px;
+    border-radius: 10px;
+    font-size: 14px;
+    margin-bottom: 24px;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    box-shadow: 0 1px 3px rgba(27, 58, 107, 0.06);
+  }
+  .dropzone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 40px 24px;
+    border: 2px dashed var(--border);
+    border-radius: 14px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    position: relative;
+  }
+  .dropzone:hover, .dropzone.dragover { border-color: var(--teal); background: #F0FDFE; }
+  .dz-icon {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: var(--charcoal);
+    color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    margin-bottom: 6px;
+  }
+  .dz-text { font-weight: 600; font-size: 15.5px; }
+  .dz-hint { font-size: 12.5px; color: var(--text-muted); }
+  .dropzone input[type="file"] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+  }
+  #fileList {
+    margin: 14px 0 0;
+    display: grid;
+    gap: 6px;
+    max-height: 280px;
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+  .file-chip {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 10px 9px 14px;
+    background: #F0FBF5;
+    border: 1px solid var(--success);
+    border-radius: 10px;
+    font-size: 13px;
+  }
+  .file-chip .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); flex-shrink: 0; }
+  .file-chip .fname { font-weight: 600; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .file-chip .remove-btn {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 15px;
+    line-height: 1;
+    cursor: pointer;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .file-chip .remove-btn:hover { background: var(--error); color: white; }
+  .file-count { font-size: 12.5px; color: var(--text-muted); margin-top: 8px; text-align: right; }
+  .meta-row { display: flex; gap: 12px; margin: 24px 0 8px; }
+  .meta-row input {
+    flex: 1;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+  }
+  .meta-row input:focus { outline: 2px solid var(--teal); outline-offset: 1px; }
+  .meta-label { font-size: 12.5px; color: var(--text-muted); margin-bottom: 6px; display: block; }
+  .generate-btn {
+    width: 100%;
+    margin-top: 16px;
+    padding: 15px;
+    background: var(--teal);
+    color: var(--charcoal-dark);
+    border: none;
+    border-radius: 12px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+  }
+  .generate-btn:hover { background: var(--teal-dark); color: white; }
+  .generate-btn:active { transform: scale(0.99); }
+  .generate-btn:focus-visible { outline: 3px solid var(--charcoal); outline-offset: 2px; }
+  .contents {
+    max-width: 640px;
+    margin: 0 auto 60px;
+    padding: 0 24px;
+  }
+  .contents h3 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 15px;
+    color: var(--charcoal);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-bottom: 14px;
+  }
+  .contents ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+  .contents li {
+    font-size: 14px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .contents li::before {
+    content: "";
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--teal);
+    flex-shrink: 0;
+    transform: translateY(-2px);
+  }
+  .footer-note {
+    text-align: center;
+    font-size: 12.5px;
+    color: var(--text-muted);
+    max-width: 480px;
+    margin: 0 auto 60px;
+    padding: 0 24px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="brand">GST Report Generator</div>
+
+</nav>
+
+<div class="hero">
+  <h1>Turn your GSTR JSONs into a<br><span>boardroom-ready</span> report</h1>
+  <p class="sub">Upload your GSTR-1, GSTR-2B (Summary + Detail files), and GSTR-3B files for the required period — get an Excel report with every month as a column, variance flags built in.</p>
+</div>
+
+<div class="container">
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      {% for message in messages %}
+        <div class="flash">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <form class="card" action="/generate" method="post" enctype="multipart/form-data" id="reportForm">
+
+    <label class="dropzone" id="dropzone">
+      <div class="dz-icon">↑</div>
+      <div class="dz-text">Drop all your GSTR-1, GSTR-2B (Summary + File1/File2/...), and GSTR-3B files here</div>
+      <div class="dz-hint">any number of months, any order, .json or .zip -- one GSTIN per report</div>
+      <input type="file" name="files" id="fileInput" accept=".json,.zip" multiple required>
+    </label>
+
+    <div id="fileList"></div>
+    <div id="fileCount" class="file-count"></div>
+
+    <div class="meta-row">
+      <div style="flex:1">
+        <span class="meta-label">Company name (optional)</span>
+        <input type="text" name="company_name" placeholder="e.g. Your Company Pvt Ltd">
+      </div>
+      <div style="flex:1">
+        <span class="meta-label">Period (optional)</span>
+        <input type="text" name="financial_year" placeholder="e.g. Apr 2025 - Mar 2026, or FY 2025-26">
+      </div>
+    </div>
+
+    <button type="submit" class="generate-btn" id="genBtn">Generate report</button>
+    <input type="hidden" name="download_token" id="downloadToken">
+  </form>
+</div>
+
+<div class="contents">
+  <h3>What's inside the report</h3>
+  <ul>
+    <li>GSTR-3B summary — matched to the official table structure (3.1, 4A-4D, payment breakdown)</li>
+    <li>GSTR-1 summary — B2B, credit/debit notes, exports, B2CS</li>
+    <li>GSTR-2B summary — ITC by category, with taxable value where available</li>
+    <li>GSTR-3B vs GSTR-1 — outward liability reconciliation, line by line</li>
+    <li>GSTR-3B vs GSTR-2B — ITC claimed vs available, matched category-by-category</li>
+  </ul>
+</div>
+
+<p class="footer-note">Your files are processed to generate the report and are not stored.</p>
+
+<script>
+  const dropzone = document.getElementById('dropzone');
+  const fileInput = document.getElementById('fileInput');
+  const fileList = document.getElementById('fileList');
+  const fileCount = document.getElementById('fileCount');
+
+  let selectedFiles = []; // persistent list -- lets us support add-more and remove-one
+
+  function syncInputFiles() {
+    const dt = new DataTransfer();
+    selectedFiles.forEach(f => dt.items.add(f));
+    fileInput.files = dt.files;
+  }
+
+  function renderFileList() {
+    fileList.innerHTML = '';
+    selectedFiles.forEach((f, idx) => {
+      const chip = document.createElement('div');
+      chip.className = 'file-chip';
+      chip.innerHTML = `<div class="dot"></div><div class="fname">${f.name}</div>
+        <button type="button" class="remove-btn" data-idx="${idx}" title="Remove this file">×</button>`;
+      fileList.appendChild(chip);
+    });
+    fileCount.textContent = selectedFiles.length > 0
+      ? `${selectedFiles.length} file${selectedFiles.length === 1 ? '' : 's'} selected`
+      : '';
+  }
+
+  function addFiles(newFiles) {
+    const existingKeys = new Set(selectedFiles.map(f => f.name + f.size));
+    Array.from(newFiles).forEach(f => {
+      if (!existingKeys.has(f.name + f.size)) {
+        selectedFiles.push(f);
+        existingKeys.add(f.name + f.size);
+      }
+    });
+    syncInputFiles();
+    renderFileList();
+  }
+
+  fileInput.addEventListener('click', () => { fileInput.value = ''; }); // allow re-picking same file after removal
+  fileInput.addEventListener('change', e => addFiles(e.target.files));
+
+  fileList.addEventListener('click', e => {
+    const btn = e.target.closest('.remove-btn');
+    if (!btn) return;
+    const idx = parseInt(btn.dataset.idx, 10);
+    selectedFiles.splice(idx, 1);
+    syncInputFiles();
+    renderFileList();
+  });
+
+  ['dragenter', 'dragover'].forEach(evt =>
+    dropzone.addEventListener(evt, e => { e.preventDefault(); dropzone.classList.add('dragover'); })
+  );
+  ['dragleave', 'drop'].forEach(evt =>
+    dropzone.addEventListener(evt, e => { e.preventDefault(); dropzone.classList.remove('dragover'); })
+  );
+  dropzone.addEventListener('drop', e => addFiles(e.dataTransfer.files));
+
+  function getCookie(name) {
+    const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+    return match ? match[2] : null;
+  }
+
+  document.getElementById('reportForm').addEventListener('submit', function(e) {
+    if (selectedFiles.length === 0) {
+      e.preventDefault();
+      alert('Please add at least your GSTR-1, GSTR-2B Summary, and GSTR-3B files first.');
+      return;
+    }
+    const token = 'tok_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+    document.getElementById('downloadToken').value = token;
+    document.cookie = 'download_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/'; // clear any stale one first
+
+    const btn = document.getElementById('genBtn');
+    btn.textContent = 'Generating...';
+    btn.disabled = true;
+
+    // Poll for the server's completion cookie -- resets the button the moment
+    // the file actually starts downloading, instead of staying stuck forever
+    // (a plain form-submit file download gives JS no other completion signal).
+    const pollInterval = setInterval(() => {
+      if (getCookie('download_token') === token) {
+        clearInterval(pollInterval);
+        btn.textContent = 'Generate report';
+        btn.disabled = false;
+        document.cookie = 'download_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/';
+      }
+    }, 400);
+    // Safety net in case something goes wrong and the cookie never appears
+    setTimeout(() => {
+      clearInterval(pollInterval);
+      if (btn.disabled) {
+        btn.textContent = 'Generate report';
+        btn.disabled = false;
+      }
+    }, 300000); // 5 minutes
+  });
+</script>
+
+</body>
+</html>
